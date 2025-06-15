@@ -43,23 +43,69 @@ class ProxyApp:
         self.log_text.pack(pady=10)
 
     def add_forwarding_rule(self):
-        # 弹出对话框获取用户输入
-        local_port = simpledialog.askinteger("添加规则", "请输入本地端口:")
-        if local_port is None:
-            return
-
-        remote_host = simpledialog.askstring("添加规则", "请输入远程主机 IP 地址:")
-        if remote_host is None:
-            return
-
-        remote_port = simpledialog.askinteger("添加规则", "请输入远程端口:")
-        if remote_port is None:
-            return
-
-        # 添加规则到表格
-        self.tree.insert("", tk.END, values=(local_port, remote_host, remote_port))
-        self.forwarding_rules.append((local_port, remote_host, remote_port))
-        self.log_text.insert(tk.END, f"已添加转发规则: {local_port} -> {remote_host}:{remote_port}\n")
+        # 创建自定义对话框窗口
+        dialog = tk.Toplevel(self.root)
+        dialog.title("添加转发规则")
+        
+        # 设置窗口模态
+        dialog.transient(self.root)
+        dialog.grab_set()
+        
+        # 创建输入框及标签
+        tk.Label(dialog, text="本地端口:").grid(row=0, column=0, padx=5, pady=5)
+        local_port_entry = tk.Entry(dialog)
+        local_port_entry.grid(row=0, column=1, padx=5, pady=5)
+        
+        tk.Label(dialog, text="远程主机 IP:").grid(row=1, column=0, padx=5, pady=5)
+        remote_host_entry = tk.Entry(dialog)
+        remote_host_entry.grid(row=1, column=1, padx=5, pady=5)
+        
+        tk.Label(dialog, text="远程端口:").grid(row=2, column=0, padx=5, pady=5)
+        remote_port_entry = tk.Entry(dialog)
+        remote_port_entry.grid(row=2, column=1, padx=5, pady=5)
+        
+        # 结果存储变量
+        result = [None]
+        
+        def on_confirm():
+            # 获取输入值
+            local_port = local_port_entry.get()
+            remote_host = remote_host_entry.get()
+            remote_port = remote_port_entry.get()
+            
+            # 输入验证
+            if not all([local_port, remote_host, remote_port]):
+                messagebox.showerror("错误", "所有字段都是必填项")
+                return
+                
+            try:
+                local_port = int(local_port)
+                remote_port = int(remote_port)
+            except ValueError:
+                messagebox.showerror("错误", "端口必须为数字")
+                return
+                
+            # 存储结果并关闭对话框
+            result[0] = (local_port, remote_host, remote_port)
+            dialog.destroy()
+        
+        # 按钮框架
+        button_frame = tk.Frame(dialog)
+        button_frame.grid(row=3, column=0, columnspan=2, pady=10)
+        
+        tk.Button(button_frame, text="确定", command=on_confirm).pack(side=tk.LEFT, padx=5)
+        tk.Button(button_frame, text="取消", command=dialog.destroy).pack(side=tk.LEFT, padx=5)
+        
+        # 等待窗口关闭
+        self.root.wait_window(dialog)
+        
+        # 处理结果
+        if result[0]:
+            local_port, remote_host, remote_port = result[0]
+            # 添加规则到表格
+            self.tree.insert("", tk.END, values=(local_port, remote_host, remote_port))
+            self.forwarding_rules.append((local_port, remote_host, remote_port))
+            self.log_text.insert(tk.END, f"已添加转发规则: {local_port} -> {remote_host}:{remote_port}\n")
 
     def delete_forwarding_rule(self):
         # 删除选中规则
