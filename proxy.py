@@ -47,9 +47,23 @@ class ProxyApp:
         dialog = tk.Toplevel(self.root)
         dialog.title("添加转发规则")
         
-        # 设置窗口模态
+        # 设置窗口模态并居中显示
         dialog.transient(self.root)
         dialog.grab_set()
+        
+        # 获取主窗口位置和尺寸
+        self.root.update_idletasks()  # 确保获取最新尺寸
+        root_x = self.root.winfo_x()
+        root_y = self.root.winfo_y()
+        root_width = self.root.winfo_width()
+        root_height = self.root.winfo_height()
+        
+        # 设置弹窗尺寸
+        dialog_width = 300  # 根据实际布局调整
+        dialog_height = 150  # 根据实际布局调整
+        x = root_x + (root_width // 2) - (dialog_width // 2)
+        y = root_y + (root_height // 2) - (dialog_height // 2)
+        dialog.geometry(f"{dialog_width}x{dialog_height}+{x}+{y}")
         
         # 创建输入框及标签
         tk.Label(dialog, text="本地端口:").grid(row=0, column=0, padx=5, pady=5)
